@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -36,8 +37,8 @@ func getNextDateHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = checkRepeat(repeat)
 	if err != nil {
-		log.Printf("[REQ] error checking repeat: %v", err)
-		writeErrorJSON(w, http.StatusBadRequest, "'repeat' error")
+		log.Printf("[REQ] error checking repeat (%s): %v", repeat, err)
+		writeErrorJSON(w, http.StatusBadRequest, fmt.Sprintf("'repeat' (%s) error", repeat))
 		return
 	}
 
@@ -54,5 +55,6 @@ func getNextDateHandler(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	// writeJSON(w, resp)
-	writeJSON(w, nd.Format(LAYOUT))
+	// writeJSON(w, nd.Format(LAYOUT))
+	w.Write([]byte(nd.Format(LAYOUT)))
 }

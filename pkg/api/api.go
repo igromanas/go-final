@@ -62,8 +62,9 @@ func checkRepeat(input string) error {
 		return fmt.Errorf("incorrect number of 'repeat' parameters")
 	}
 
-	repeatExpr := regexp.MustCompile(`^[yd](?:\s+\d+(?:,\d+)*)(?:\s+\d+(?:,\d+)*)?$`)
 	// repeatExpr := regexp.MustCompile(`^[ydmw](?:\s+\d+(?:,\d+)*)(?:\s+\d+(?:,\d+)*)?$`) // TODO
+	repeatExpr := regexp.MustCompile(`^[yd](?:\s+\d+(?:,\d+)*(\s+\d+(?:,\d+)*)?)?$`)
+
 	if repeatExpr.MatchString(input) {
 		return nil
 	}
