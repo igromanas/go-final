@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -27,6 +28,10 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 		addTaskHandler(w, r)
 	case http.MethodDelete:
 		deleteTaskHandler(w, r)
+	default:
+		log.Printf("[REQ] error: wrong task handler method")
+		writeErrorJSON(w, http.StatusMethodNotAllowed, "wrong method error")
+		return
 	}
 }
 

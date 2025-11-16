@@ -8,7 +8,7 @@ import (
 	"github.com/igromanas/go-final/pkg/model"
 )
 
-const TASKS_LIMIT = 50
+const TaskLimit = 50
 
 type TasksResp struct {
 	Tasks []*model.Task `json:"tasks"`
@@ -21,7 +21,7 @@ func tasksHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tasks, err := db.Tasks(TASKS_LIMIT)
+	tasks, err := db.Tasks(TaskLimit)
 	if err != nil {
 		log.Printf("[DB] error getting tasks: %v", err)
 		writeErrorJSON(w, http.StatusInternalServerError, "db error")

@@ -9,26 +9,24 @@ import (
 func writeJSON(w http.ResponseWriter, data any) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	resp, err := json.Marshal(data)
+	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
 		log.Printf("error processing json: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
-		return
 	}
-	w.Write(resp)
 }
 
 func writeErrorJSON(w http.ResponseWriter, code int, msg string) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(code)
 
 	respError := map[string]any{
 		"error": msg,
 	}
-	resp, err := json.Marshal(respError)
+
+	err := json.NewEncoder(w).Encode(respError)
 	if err != nil {
 		log.Printf("error processing json: %v", err)
-		w.WriteHeader(code)
-		return
+		w.WriteHeader(http.StatusInternalServerError)
 	}
-	w.Write(resp)
 }

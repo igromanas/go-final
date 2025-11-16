@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/igromanas/go-final/pkg/db"
@@ -14,8 +15,13 @@ func main() {
 	port := os.Getenv("TODO_PORT")
 	dbPath := os.Getenv("TODO_DBFILE")
 
-	db.Init(dbPath)
-	server.Run(port)
-
+	err := db.Init(dbPath)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer db.DB.Close()
+
+	if err := server.Run(port); err != nil {
+		log.Fatal(err)
+	}
 }

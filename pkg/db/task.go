@@ -32,7 +32,7 @@ func AddTask(task *model.Task) (string, error) {
 }
 
 func Tasks(limit int) ([]*model.Task, error) {
-	query := `SELECT * 
+	query := `SELECT id, date, title, comment, repeat 
 				FROM scheduler 
 				ORDER BY date DESC 
 				LIMIT :limit;`
@@ -58,7 +58,7 @@ func Tasks(limit int) ([]*model.Task, error) {
 }
 
 func GetTaskByID(id string) (*model.Task, error) {
-	query := `SELECT * 
+	query := `SELECT id, date, title, comment, repeat 
 				FROM scheduler 
 				WHERE id = :id;`
 

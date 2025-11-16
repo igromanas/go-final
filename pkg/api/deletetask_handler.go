@@ -8,12 +8,6 @@ import (
 )
 
 func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodDelete {
-		log.Printf("[REQ] error: wrong method")
-		writeErrorJSON(w, http.StatusMethodNotAllowed, "wrong method")
-		return
-	}
-
 	id := r.URL.Query().Get("id")
 	if id == "" {
 		log.Printf("[REQ] error: empty ID")

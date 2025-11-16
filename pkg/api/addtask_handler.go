@@ -1,7 +1,6 @@
 package api
 
 import (
-	"bytes"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -12,16 +11,11 @@ import (
 )
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		log.Printf("[REQ] error: wrong method")
-		writeErrorJSON(w, http.StatusMethodNotAllowed, "wrong method")
-		return
-	}
-
 	var task model.Task
-	var buf bytes.Buffer
-	buf.ReadFrom(r.Body)
-	err := json.Unmarshal(buf.Bytes(), &task)
+	// var buf bytes.Buffer
+	// buf.ReadFrom(r.Body)
+	// err := json.Unmarshal(buf.Bytes(), &task)
+	err := json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {
 		log.Printf("[REQ] error processing json: %v", err)
 		writeErrorJSON(w, http.StatusBadRequest, "json processing")

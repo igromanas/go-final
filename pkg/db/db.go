@@ -11,7 +11,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-const schema = `CREATE TABLE IF NOT EXISTS scheduler (
+const tableSchema = `CREATE TABLE IF NOT EXISTS scheduler (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date CHAR(8) NOT NULL,
 	title VARCHAR(255) NOT NULL,
@@ -19,9 +19,7 @@ const schema = `CREATE TABLE IF NOT EXISTS scheduler (
     repeat VARCHAR(128)
 	);`
 
-const schema2 = `CREATE INDEX IF NOT EXISTS scheduler_date ON scheduler (date);`
-
-// const schema3 = `SELECT name FROM sqlite_master WHERE type='table';`
+const indexSchema = `CREATE INDEX IF NOT EXISTS scheduler_date ON scheduler (date);`
 
 var DB *sql.DB
 
@@ -44,7 +42,7 @@ func Init(dbFile string) error {
 	fmt.Printf("ping: %v\n", DB.Ping())
 
 	if install {
-		_, err = DB.ExecContext(context.Background(), schema)
+		_, err = DB.ExecContext(context.Background(), tableSchema)
 	}
 
 	if err != nil {
@@ -53,7 +51,7 @@ func Init(dbFile string) error {
 	}
 
 	if install {
-		_, err = DB.ExecContext(context.Background(), schema2)
+		_, err = DB.ExecContext(context.Background(), indexSchema)
 	}
 
 	if err != nil {

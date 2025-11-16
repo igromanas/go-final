@@ -8,12 +8,6 @@ import (
 )
 
 func getTaskHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		log.Printf("[REQ] error: wrong method")
-		writeErrorJSON(w, http.StatusMethodNotAllowed, "wrong method error")
-		return
-	}
-
 	id := r.URL.Query().Get("id")
 	if id == "" {
 		log.Printf("[REQ] error: empty id")
