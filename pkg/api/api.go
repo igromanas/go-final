@@ -31,7 +31,6 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		log.Printf("[REQ] error: wrong task handler method")
 		writeErrorJSON(w, http.StatusMethodNotAllowed, "wrong method error")
-		return
 	}
 }
 

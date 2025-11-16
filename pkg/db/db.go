@@ -46,7 +46,7 @@ func Init(dbFile string) error {
 	}
 
 	if err != nil {
-		log.Printf("schema execution error: {%v}", err)
+		log.Printf("schema execution error: %v", err)
 		return err
 	}
 
@@ -55,18 +55,9 @@ func Init(dbFile string) error {
 	}
 
 	if err != nil {
-		log.Printf("schema execution error: {%v}", err)
+		log.Printf("schema execution error: %v", err)
 		return err
 	}
-
-	// check
-	// rows, _ := DB.QueryContext(context.Background(), schema3)
-	// defer rows.Close()
-	// for rows.Next() {
-	// 	var name string
-	// 	_ = rows.Scan(&name)
-	// 	fmt.Println("row:", name)
-	// }
 
 	return nil
 }

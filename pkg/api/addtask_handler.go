@@ -12,9 +12,6 @@ import (
 
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var task model.Task
-	// var buf bytes.Buffer
-	// buf.ReadFrom(r.Body)
-	// err := json.Unmarshal(buf.Bytes(), &task)
 	err := json.NewDecoder(r.Body).Decode(&task)
 	if err != nil {
 		log.Printf("[REQ] error processing json: %v", err)
