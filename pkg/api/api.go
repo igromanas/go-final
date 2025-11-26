@@ -7,15 +7,21 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/igromanas/go-final/pkg/auth"
 )
 
 const LAYOUT = "20060102"
 
 func Init(mux *http.ServeMux) {
 	mux.HandleFunc("/api/nextdate", getNextDateHandler)
-	mux.HandleFunc("/api/task", taskHandler)
-	mux.HandleFunc("/api/tasks", tasksHandler)
-	mux.HandleFunc("/api/task/done", taskDoneHandler)
+	// mux.HandleFunc("/api/task", taskHandler)
+	// mux.HandleFunc("/api/tasks", tasksHandler)
+	// mux.HandleFunc("/api/task/done", taskDoneHandler)
+	mux.HandleFunc("/api/task", auth.Auth(taskHandler))
+	mux.HandleFunc("/api/tasks", auth.Auth(tasksHandler))
+	mux.HandleFunc("/api/task/done", auth.Auth(taskDoneHandler))
+	mux.HandleFunc("/api/signin", signinHandler)
 }
 
 func taskHandler(w http.ResponseWriter, r *http.Request) {
@@ -66,12 +72,26 @@ func checkRepeat(input string) error {
 		return fmt.Errorf("incorrect number of 'repeat' parameters")
 	}
 
-	// repeatExpr := regexp.MustCompile(`^[ydmw](?:\s+\d+(?:,\d+)*)(?:\s+\d+(?:,\d+)*)?$`) // TODO
-	repeatExpr := regexp.MustCompile(`^[yd](?:\s+\d+(?:,\d+)*(\s+\d+(?:,\d+)*)?)?$`)
+	var repeatExpr *regexp.Regexp
+	switch parameters[0] {
+	case "d":
+		repeatExpr = regexp.MustCompile(`^d\s+0*(?:[1-9][0-9]{0,2}|400)$`)
+	case "w":
+		repeatExpr = regexp.MustCompile(`^w\s+0*[1-7](?:,0*[1-7])*$`)
+	case "m":
+		repeatExpr = regexp.MustCompile(`^m\s+(?:0*(?:[1-9]|[12][0-9]|3[01])|-1|-2)(?:,(?:0*(?:[1-9]|[12][0-9]|3[01])|-1|-2))*(?:\s+0*(?:[1-9]|1[0-2])(?:,0*(?:[1-9]|1[0-2]))*)?$`)
+	case "y":
+		return nil
+	default:
+		return fmt.Errorf("incorrect values of 'repeat' parameters in '%s", input)
+	}
+	// repeatExpr := regexp.MustCompile(`^[ydmw](?:\s+\d+(?:,\d+)*(\s+\d+(?:,\d+)*)?)?$`) // TODO
+	// repeatExpr := regexp.MustCompile(`^[ydmw](?:\s+(?:-1|-2|[1-9]|[12]\d|3[01])(?:,(?:-1|-2|[1-9]|[12]\d|3[01]))*)?(?:\s+(?:[1-9]|1[0-2])(?:,(?:[1-9]|1[0-2]))*)?$`)
+	// repeatExpr := regexp.MustCompile(`^[yd](?:\s+\d+(?:,\d+)*(\s+\d+(?:,\d+)*)?)?$`) // old
 
 	if repeatExpr.MatchString(input) {
 		return nil
 	}
 
-	return fmt.Errorf("incorrect values of 'repeat' parameters")
+	return fmt.Errorf("incorrect values of 'repeat' parameters in '%s'", input)
 }

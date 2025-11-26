@@ -49,7 +49,7 @@ func getNextDateHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("NextDay result: %s\n", nd.Format(LAYOUT))
+	// log.Printf("NextDay result: %s\n", nd.Format(LAYOUT))
 
 	_, err = w.Write([]byte(nd.Format(LAYOUT)))
 	if err != nil {

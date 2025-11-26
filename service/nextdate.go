@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -14,7 +15,7 @@ const Layout = "20060102"
 type Rule struct {
 	mode   string
 	first  []int
-	second []int // TODO
+	second []time.Month // TODO
 }
 
 func parseRule(input string, rule *Rule) error {
@@ -67,7 +68,7 @@ func parseRule(input string, rule *Rule) error {
 				if err != nil {
 					return fmt.Errorf("invalid second parameter error: %w", err)
 				}
-				rule.second = append(rule.second, num)
+				rule.second = append(rule.second, time.Month(num))
 			}
 		}
 	}
@@ -96,16 +97,116 @@ func addDays(now time.Time, date time.Time, days int) time.Time {
 }
 
 func addWeekdays(now time.Time, date time.Time, weekdays []int) time.Time {
-	if now.Before(date) {
+	if date.Before(now) {
 		date = now
 	}
+
 	dw := int(date.Weekday())
 	for _, w := range weekdays {
 		if w > dw {
 			return date.AddDate(0, 0, w-dw)
 		}
 	}
-	return date.AddDate(0, 0, weekdays[0]-dw)
+
+	if weekdays[0] == dw {
+		return date.AddDate(0, 0, 7)
+	}
+
+	return date.AddDate(0, 0, weekdays[0]+7-dw)
+}
+
+func createDate(year int, month time.Month, day int) time.Time {
+	test := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Now().UTC().Location())
+	for test.Day() < day {
+		test = test.AddDate(0, 0, 1)
+	}
+	return test
+}
+
+func addSomeDays(now time.Time, date time.Time, days []int, months []time.Month) time.Time {
+	if date.Before(now) {
+		date = now
+	}
+
+	var candidates []time.Time
+	if months == nil {
+		for _, day := range days {
+			switch day {
+			case -1:
+				d := createDate(date.Year(), date.Month()+1, 0) // last day of current month
+				if date.After(d) || date.Day() == d.Day() {
+					candidates = append(candidates, createDate(date.Year(), date.Month()+2, 0)) // last day of next month
+				} else {
+					candidates = append(candidates, d)
+				}
+			case -2:
+				d := createDate(date.Year(), date.Month()+1, -1) // penultimate day of current month
+				if date.After(d) || date.Day() == d.Day() {
+					candidates = append(candidates, createDate(date.Year(), date.Month()+2, -1)) // penultimate day of next month
+				} else {
+					candidates = append(candidates, d)
+				}
+			default:
+				d := createDate(date.Year(), date.Month(), day)
+				if date.After(d) || date.Day() == d.Day() {
+					candidates = append(candidates, createDate(date.Year(), date.Month()+1, day))
+				} else {
+					candidates = append(candidates, d)
+				}
+			}
+		}
+	} else {
+		for _, m := range months {
+			switch {
+			case date.Month() < m:
+				for _, day := range days {
+					switch day {
+					case -1:
+						candidates = append(candidates, createDate(date.Year(), m+1, 0)) // last day of m month
+					case -2:
+						candidates = append(candidates, createDate(date.Year(), m+1, -1)) // penultimate day of m month
+					default:
+						candidates = append(candidates, createDate(date.Year(), m, day))
+					}
+				}
+			case date.Month() > m:
+				nextYear := date.Year() + 1
+				for day := range days {
+					switch day {
+					case -1:
+						candidates = append(candidates, createDate(nextYear, m+1, 0)) // last day of m month next year
+					case -2:
+						candidates = append(candidates, createDate(nextYear, m+1, -1)) // penultimate day of m month next year
+					default:
+						candidates = append(candidates, createDate(nextYear, m, day))
+					}
+				}
+			case date.Month() == m:
+				for _, day := range days {
+					switch day {
+					case -1:
+						d := createDate(date.Year(), date.Month()+1, 0) // last day of current month
+						if date.Before(d) {
+							candidates = append(candidates, d)
+						}
+					case -2:
+						d := createDate(date.Year(), date.Month()+1, -1) // penultimate day of current month
+						if date.Before(d) {
+							candidates = append(candidates, d)
+						}
+					default:
+						d := createDate(date.Year(), date.Month(), day)
+						if date.Before(d) {
+							candidates = append(candidates, d)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	sort.Slice(candidates, func(i, j int) bool { return candidates[i].Before(candidates[j]) })
+	return candidates[0]
 }
 
 func NextDate(now time.Time, dstart time.Time, repeat string) (time.Time, error) {
@@ -117,13 +218,12 @@ func NextDate(now time.Time, dstart time.Time, repeat string) (time.Time, error)
 	switch rule.mode {
 	case "d":
 		return addDays(now, dstart, rule.first[0]), nil
-
 	case "y":
 		return addYears(now, dstart, 1), nil
-	// == TODO ==
 	case "w":
 		return addWeekdays(now, dstart, rule.first), nil
-	// case "m":
+	case "m":
+		return addSomeDays(now, dstart, rule.first, rule.second), nil
 	default:
 		return time.Time{}, fmt.Errorf("unexpected rule mode")
 	}
@@ -153,25 +253,6 @@ func ModifyDate(task *model.Task) error {
 			task.Date = nd.Format(Layout)
 		}
 	}
-	// var next string
-	// if task.Repeat != "" {
-	// 	nd, err := NextDate(now, dstart, task.Repeat)
-	// 	if err != nil {
-	// 		return fmt.Errorf("next date error: {%v}", err)
-	// 	}
-	// 	next = nd.Format(LAYOUT)
-	// }
-
-	// // если сегодня (now) больше task.Date (t)
-	// if now.After(dstart) {
-	// 	if len(task.Repeat) == 0 {
-	// 		// если правила повторения нет, то берём сегодняшнее число
-	// 		task.Date = now.Format(LAYOUT)
-	// 	} else {
-	// 		// в противном случае, берём вычисленную ранее следующую дату
-	// 		task.Date = next
-	// 	}
-	// }
 
 	return nil
 }

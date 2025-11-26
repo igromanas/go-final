@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"log"
 
 	"os"
@@ -38,8 +37,7 @@ func Init(dbFile string) error {
 		return err
 	}
 
-	DB.SetMaxOpenConns(1)
-	fmt.Printf("ping: %v\n", DB.Ping())
+	// DB.SetMaxOpenConns(1) // sqlite?
 
 	if install {
 		_, err = DB.ExecContext(context.Background(), tableSchema)
